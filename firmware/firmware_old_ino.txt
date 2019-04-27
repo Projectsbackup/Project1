@@ -1,0 +1,150 @@
+#include "image.h"
+
+#include "Serialcom.cpp"
+
+
+//#define COLS 64
+//#define ROWS 472
+
+
+
+Serialcom Ser;
+
+void establishContact() {
+  while (Serial.available() <= 0) {
+    Serial.println("Contact ");   // send a capital A
+    delay(500);
+  }
+}
+
+
+String incoming = ""; 
+void setup() {
+  // put your setup code here, to run once:
+Serial.begin(115200);
+
+//for(int i =0; i<100;i++){
+//    Serial.println("I blinked");
+//    delay(100);
+//  }
+
+//byte c1[8], c2[8];
+//int pos =0;
+//  for(int pos =0;pos<COLS;pos++){
+//  for (int i=0; i<8; i++) {
+//    c1[i] = pgm_read_byte(&IMAGE[pos][i]);
+//   // c2[i] = pgm_read_byte(&IMAGE[pos+1][i]);
+//   Serial.println(c1[i]);
+//    
+//  }
+//   // Serial.write(c1,8);
+//
+//    }
+
+
+//while (!Serial) {
+ //   ; // wait for serial port to connect. Needed for native USB port only
+ // }
+
+ // establishContact();
+  
+// String incomingByte = (char)Serial.read();
+// Serial.println(incomingByte);
+}
+
+
+void processCommand(int curcom){
+//conditions for proceses
+
+
+
+  
+}
+const byte numChars = 32;
+char receivedChars[numChars];
+static byte ndx = 0;
+int lastCommand =0;
+char rc;
+void loop() {
+    if(!Ser.checkConnection()){
+    //  Serial.println("fix me");
+     // MotorX.Stop();
+     // MotorY.Stop();
+     // Xaar.powerdown();
+     // MotorX.disable();
+     // MotorY.disable();
+      
+    }
+    else{
+      //delay(1000);
+      if(Ser.checkdata()){
+        
+        int currentCommand = Ser.getCommand();
+        if(lastCommand == 0){
+          lastCommand = currentCommand;
+          Serial.println("new Command :" + String(lastCommand));
+          byte C1 = pgm_read_byte(&IMAGE[1][1]);
+          Serial.println("image serial0 : " + String(C1));
+          processCommand(currentCommand);
+        }
+        else{
+         // Serial.println("Last Command ::" + String(lastCommand));
+          Serial.println("NEW Command ::" + String(currentCommand));
+         
+          //Serial.println("imageSerial : " + String(imageserial));
+          for(int i=0;i<64;i++){
+            byte C1 = pgm_read_byte(&IMAGE[471][i]);
+          Serial.println("image serial 96," + String(i)+ ": " );
+          Serial.print(C1);
+          }
+//          byte C1 = pgm_read_byte(&IMAGE[471][64]);
+//          Serial.println("image serial472 : " + String(C1));
+          processCommand(currentCommand);
+          lastCommand = currentCommand;
+        }
+        
+      }
+      else{
+       // delay(1000);
+        delayMicroseconds(500);
+       //Serial.println("<processing Last Command :" + String(lastCommand)+">");
+        processCommand(lastCommand);
+        
+      }
+
+      //everytime print button is pressed > previous command =0;
+    //  Serial.println("connected");
+    }
+    //Ser.recvWithStartEndMarkers();
+    
+//   if (Serial.available() > 0 ) {
+//    // read the incoming:
+//   //incoming = (Serial.readString());
+//    rc = Serial.read();
+//    receivedChars[ndx] = rc;
+//    ndx++;
+//   //Serial.println("response :" + incoming );
+//   Serial.print("This just in ... ");
+//   Serial.println(receivedChars);
+//    // say what you got:
+//    //Serial.println(incoming);  
+//     
+//    if(strcmp(receivedChars,"connect")==0){
+//      
+//      Serial.println("connect");
+//      //incoming ="";
+//     // Serial.send_now();
+//      
+//    }
+//    if(incoming == "layer_data\r\n"){
+//      Serial.println("RX:layer_data");
+//      String row = Serial.readString();
+//      
+//      Serial.println((row));
+//      
+//    }
+//  // put your main code here, to run repeatedly:
+  
+
+//}
+}
