@@ -46,16 +46,16 @@ class Image_Converter():
         self.layers_data =[]
         if(str(temp_file_path)==""):
             self.file_type =0
-            print("File Directory is not given")
+           # print("File Directory is not given")
             return 0;
         if(os.path.exists(str(temp_file_path)) ==False):
-            print("The File directory doesn't exist")
+           # print("The File directory doesn't exist")
             return 0;
         else:
             self.file_path = temp_file_path
             filename,file_extension = os.path.splitext(temp_file_path)
             if(file_extension.lower() != ".svg"):
-                print("File type/extension is not compatible NOT an SVG File from Slic3r Program")
+              #  print("File type/extension is not compatible NOT an SVG File from Slic3r Program")
                 return 0
             
             if(file_extension.lower() == ".svg"):
@@ -67,7 +67,7 @@ class Image_Converter():
             except:
                 nothing =0
             if(temp_success ==1):
-                print("file opened")
+              #  print("file opened")
                # print(self.vector_file)
                 self.SVG2data(self.file_path)
                 return 1
@@ -84,35 +84,42 @@ class Image_Converter():
        bed_width = math.floor(150 * (self.dpiY/25.4))
        bed_image = zeros((bed_height,bed_width))
        return bed_image
+    
+    def CadModelDim(self,h,w):
+        self.h = h
+        self.w = w
         
+    def getCadModelDim(self):
+        return self.h,self.w
     def SVG2data(self,filename):
         et = ET.ElementTree(file = filename)
         self.height = float(et.getroot().get('height'))
         self.width =  float(et.getroot().get('width'))
+        self.CadModelDim(self.height,self.width)
        # self.height = int((self.height)* (self.dpi/25.4)) +1
        # self.width = int((self.width)* (self.dpi/25.4)) +1
         self.height = int((self.height)* (self.dpiY/25.4)) +1    # was 360/25.4
         if(self.height % 128  !=0):
-            print("height0 %d",(self.height))
+           # print("height0 %d",(self.height))
             self.height = 128 * math.ceil(self.height/128)
-            print("height %d",(self.height))
+          #  print("height %d",(self.height))
        # self.width = int((self.width)* (339/25.4)) +1    #old resolution = 185 , adjust dpi  in polygonarray as well
-        self.width = math.ceil((self.width)* (self.dpiX/25.4))  #was 339/25.4
+        self.width = math.ceil((self.width)* (self.dpiX/25.4)) + (2+(5*42) )#was 339/25.4 , 5 steps each 3 nozzles * (126/3 = 42) + last nozzle (+2)  
         self.image_height = self.height
         self.image_width = self.width
         image = zeros((self.height,self.width) )
         
-        print(self.height,self.width)
+        #print(self.height,self.width)
         total_layers = 0
         #print( len(et.getroot()[1]))
         for i in et.findall("{http://www.w3.org/2000/svg}g"):
             total_layers= total_layers+1
-        print(total_layers)
+       # print(total_layers)
         
        # image0 = zeros(self.image_height,self.image_width)
         for j in range(0,total_layers-1): #total_layers
             imagex = zeros((self.height,self.width) )
-            total_bedpreview = []
+          #  total_bedpreview = []
             self.layer_info = []
            # imagex =self.Bed_image()
             for i in range(0,len(et.getroot()[j])):
@@ -120,7 +127,7 @@ class Image_Converter():
             
                 first_g =first_g.replace(' ',',')
                 first_g2 = np.fromstring(first_g,sep=',').reshape(-1,2)
-                total_bedpreview.extend(first_g2)
+               # total_bedpreview.extend(first_g2)
                 imagex =imagex +self.polygon2img(imagex,first_g2)
 #               
                
@@ -129,13 +136,13 @@ class Image_Converter():
             
             #bed_image = bed_image + imagex
             self.layers_data.append(self.layer_info)
-           
-            self.bedpreview.append(total_bedpreview)
+            
+           # self.bedpreview.append(total_bedpreview)
             self.layers.append(imagex)
             
         #self.showlayers(self.layers)
         #print(len(self.layers))  
-        print((self.bedpreview[0][0][0]))
+       # print((self.bedpreview[0][0][0]))
         
     def polygon2img(self,img,polygonarraypoints):
         nr, nc = img.shape
@@ -143,11 +150,11 @@ class Image_Converter():
         xypix = np.vstack((xgrid.ravel(), ygrid.ravel())).T
        # print(xypix)
        # polygonarraypoints = polygonarraypoints * (self.dpi/25.4)
-        self.layer_info.append(polygonarraypoints.astype(int))
+        #self.layer_info.append(polygonarraypoints.astype(int))
         polygonarraypoints[:,0] = polygonarraypoints[:,0] * (self.dpiX/25.4)  #was 339/25.4
        
         polygonarraypoints[:,1] = polygonarraypoints[:,1] * (self.dpiY/25.4)  #was 360/25.4
-        #self.layer_info.append(polygonarraypoints.astype(int))
+        self.layer_info.append(polygonarraypoints.astype(int))
         
         #print(polygonarraypoints)
         pth = Path(polygonarraypoints)
