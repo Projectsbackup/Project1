@@ -1,0 +1,2 @@
+first cd to current dir then command next line:
+C:\Users\Jimmy\Anaconda3 python -m PyQt5.uic.pyuic -x "main_window.ui" -o "main_window.py"

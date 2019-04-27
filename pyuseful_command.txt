@@ -1,0 +1,9 @@
+for colors 
+
+import random
+
+prop_cycle = plt.rcParams['axes.prop_cycle']
+ colors = prop_cycle.by_key()['color']
+ 
+ c = random.randint(0,9)
+ then facecolor = colors[c]

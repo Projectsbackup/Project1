@@ -1,0 +1,5 @@
+copy platform folder from plugings 
+copy spicy 
+adjust cKDT to ckdt in spicy 
+
+if name == main to if name.endwith(main)
