@@ -1,0 +1,19 @@
+single pass update on bed view
+
+number of times ink jetted per pixels option
+
+manual control: on and off buttons
+<Manual command will be MMOV,dirposx,dirposy>
+                       <MMOV,STOPX,STOPY> 1,-1,0 if 0 stop motor
+and Max steps in x & y
+
+SET DPI 
+Set droptimes
+
+XAAR SS PINS
+ A chip select is used to enable slave select, 
+nSS (nSS1 or nSS2), 
+to be consistent with Motorola's? 
+serial peripheral .... 
+The printhead will work as a slave 
+according to the SPI description.

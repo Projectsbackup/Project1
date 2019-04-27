@@ -1,0 +1,215 @@
+/* THIS CLASS CONSISTS OF ALL FCNS NEEDED FOR ESTABLISHING SERIAL COMMUNICATION BETWEEN 
+ *  FIRMWARE AND HOST PC PROGRAM
+ */
+
+#include "Arduino.h"
+
+
+
+
+
+class Serialcom {
+
+//const byte numChars = 64;
+
+char tempChars[64];     // For parsing incoming Data
+int currentCommand =0;
+
+char COMMAND[10];      //COMMANDS FROM HOST , COMMANDS DOESNOT EXCEED 10 CHARS
+int integerFromPC = 0;
+
+char receivedChars[64];
+boolean newData = false;
+
+boolean layer_data_received = false;
+byte *image_pointer = 0;
+
+
+
+
+public:
+Serialcom()
+{
+  Serial.begin(115200);
+}
+
+void start()
+{
+  Serial.println("Xaar Printing System 1.0");
+}
+
+void echo(int cmd){
+   String nameCommand = "";
+  if(cmd == 1 ){
+      nameCommand = "HOME";
+    }
+     if(cmd == 2){
+     
+      nameCommand = "START";
+    }
+     if(cmd == 3 ){
+      
+      nameCommand = "PAUSE";
+    }
+     if(cmd == 4){
+      
+      nameCommand = "CANCEL";
+    }
+     if(cmd == 5 ){
+     
+      nameCommand = "LDRC";
+    }
+     if(cmd == 6){
+      nameCommand = "LRRC";
+    }
+  Serial.println("<" + nameCommand + ">");
+}
+bool checkConnection(){
+  
+  if(!Serial){
+    return false;
+  }
+  else{
+   // start();
+   
+    return true;
+  }
+}
+
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    char rc;
+   
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+       // Serial.println("rc :" + String(rc) );
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+                strcpy(tempChars, receivedChars);
+               // Serial.println("<RCHars :" + String(receivedChars) +">");
+                //Serial.println("<rc :" + String(tempChars) + ">" );
+                parseData();
+                memset(receivedChars, 0, sizeof receivedChars);
+              // this temporary copy is necessary to protect the original data
+              //   because strtok() used in parseData() replaces the commas with \0
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+}
+
+
+bool checkdata(){
+  //if(Serial.available()>5){
+    recvWithStartEndMarkers();
+    if(newData){
+       newData = false;
+       return true;
+    }
+    else{
+      return false;
+    }
+    
+  //}
+   
+}
+
+void setCommand(int Com){
+  currentCommand = Com;
+  Serial.println("comm :" + String(currentCommand));
+}
+
+int getCommand(){
+  return currentCommand;
+}
+
+
+
+
+void parseData() {      // split the data into its parts
+
+    char * strtokIndx; // this is used by strtok() as an index
+    int dataCount;
+    Serial.println("<" + String(tempChars) + ">");
+    strtokIndx = strtok(tempChars,",");      // get the first part - the string
+    if(strtokIndx == NULL){
+    strcpy(COMMAND, tempChars); 
+    }
+    else {
+      strcpy(COMMAND,strtokIndx);
+    }
+//    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
+//    int layer_rows = atoi(strtokIndx);  
+//    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
+//    int layer_cols = atoi(strtokIndx); // copy it to COMMAND STRING
+    
+    int command = checkCommand(COMMAND);
+    setCommand(command);
+    switch(command){
+    case 1:
+    Serial.println("<okay,Homing>");
+    break;
+
+    case 5:
+    //Serial.println("<layer data>");
+    
+     strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
+    int layer_rows = atoi(strtokIndx);  
+    strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
+    int layer_cols = atoi(strtokIndx); // copy it to COMMAND STRING
+    
+   // echo(command);
+   // Serial.println("<rows :" + String(layer_rows) + ", Cols :" + String(layer_cols) + ">");
+     
+    break;
+    
+
+      
+    }
+    //strtokIndx = strtok(NULL, ",");         // this continues where the previous call left off
+    //integerFromPC = atoi(strtokIndx);     // convert this part to an integer
+
+}
+
+
+int checkCommand(char* COMMND){
+    if(strcmp(COMMND,"HOME")==0){
+      return 1;
+    }
+     if(strcmp(COMMND,"START")==0){
+      return 2;
+    }
+     if(strcmp(COMMND,"PAUSE")==0){
+      return 3;
+    }
+     if(strcmp(COMMND,"CANCEL")==0){
+      return 4;
+    }
+     if(strcmp(COMMND,"LDRC")==0){
+      return 5;
+    }
+     if(strcmp(COMMND,"LRRC")==0){
+      return 6;
+    }
+    //return 0;
+}
+
+
+  
+
+};
