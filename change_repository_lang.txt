@@ -1,0 +1,7 @@
+found the simplest thing was to create a file called .gitattributes in the root folder of my repository, and give it these contents:
+
+* linguist-vendored
+*.js linguist-vendored=false
+This example tells github/linguist to ignore all files, 
+then just look at .js files. My project https://github.com/aim12340/jQuery-Before-Ready was listed 
+as HTML because the HTML example files were bigger than the JS files. This file fixes it for me and now it's listed as JavaScript
