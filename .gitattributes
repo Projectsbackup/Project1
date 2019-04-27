@@ -1,3 +1,3 @@
 * linguist-vendored
-*.py .cpp linguist-vendored=false
+*.py *.cpp linguist-vendored=false
 
