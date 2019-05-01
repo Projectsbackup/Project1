@@ -61,6 +61,8 @@ class Motors
     
     int CurrentStepY = 0;      // for total of single passes per layer = currentstepsY - calibration ref point / stepy_per_pass
 
+    
+    
     boolean MotorsEnabled = false;    
     // to be added in firmware int startpointx, strtpty, endptx, endpty, currpass, totalpass
     Motors();      //Empty Constructor
@@ -76,11 +78,14 @@ class Motors
     void StepY(int dirY1); // retrun remaining steps to go in Y
    
      
-    bool Calibrate_ref_bed();     //return true if motors reached ref points 
+    bool Calibrate_ref_bed(int Xbed_ref,int Ybed_ref);     //return true if motors reached ref points 
     int GetStepX();
     int GetStepY();
     void update_StepX(int dirxx);
     void update_StepY(int diryy); // increment or decrement total stepy depend on direction.
+
+    void XSetMotorSpd(int Xdur);
+    void YSetMotorSpd(int Ydur);
 
    /*
     * ***************************************************************************

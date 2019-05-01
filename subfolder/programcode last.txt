@@ -32,7 +32,7 @@ import serial.tools.list_ports
 import threading
 from functools import partial
 import time
-import os
+
 #import OpenGL.GL as gl
 #import OpenGL.GLU as glu
 #import OpenGL.GLUT as glut
@@ -57,10 +57,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.MainWindow = QtWidgets.QMainWindow()
          self.ui.setupUi(self.MainWindow)
         
-        
-         #self.uiSTL = Ui_StlSlicer()
-         #self.StlWindow = QtWidgets.QMainWindow()
-         #self.uiSTl.stepui(self.StlWindow)
+         
+         
         
          self.image_converter = Image_Converter()
          
@@ -82,7 +80,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.link_ui()
          self.MainWindow.show()
          
-         #self.link_uistl()
         
          self.slantdata = False
          
@@ -93,24 +90,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.tt =0
          
          
-    def link_uiStl(self):
-        self.uiStl.centerIt.clicked.connect(self.stlcenter())
-        self.uiStl.auto_scale.clicked.connect(partial(self.stlscale(),1))
-        self.uiSTL.ScaleSTL.clicked.connect(partial(self.stlscale(),0))
-        self.uiSTL.TranslateSTL.clicked.connect(self.stlTranslate())
-        self.uiSTL.RotateSTL.clicked.connect(self.stlRotate())
-        self.uiSTL.SliceSTl.clicked.connect(self.stlSlice())
-        self.uiSTL.OPenSlic3r.clicked.connect(self.stlOpenSlic3r())
-        
-        bedsizeX = self.ui.bedXaxis.value()
-        bedsizeY = self.ui.bedYaxis.value()
-        self._canvas3,self.ax3 = self.create_fig("3d",bedsizeX,bedsizeY)
-        self._canvas3.setParent(self.uiSTL.viewstl)
-        self._canvas3.draw()
-        
-    
-    
-    
+         
     def link_ui(self):
        
        
@@ -132,7 +112,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         self.ui.moveposy.clicked.connect(partial(self.set_statusY,1))
         
         self.ui.opensvg.clicked.connect(self.openFileNameDialog)
-        #self.ui.layernumb.valueChanged.connect(self.layervalue)
+        self.ui.layernumb.valueChanged.connect(self.layervalue)
         self.ui.uploaddata.clicked.connect(self.upload_data)
         
         
@@ -161,7 +141,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def update_parameters(self,clicked):   #clicked to update =1 , first time clicked =0
         if clicked == 1:
             self.ui.updateParameters.setEnabled(False)
-            QtWidgets.QApplication.processEvents()
             
         self.dpiX = self.ui.Xdpi.value()
         self.dpiY = self.ui.Ydpi.value()
@@ -187,38 +166,19 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         self.motorXspd = self.ui.xmotionspd.value()
         self.motorYspd = self.ui.ymotionspd.value()
         
-        if(self.stepPerPixel ==1):
-            XMtrSpd = (self.motorXResln *1000)/40   #max speed can be achieved in this setup [stepper motors]
-        else:
-            if((self.StepPixelDuration/2)>= 40):
-                XMtrSpd = (self.motorXResln * 1000) /self.StepPixelDuration
-            if((self.StepPixelDuration/2) <40):
-                XMtrSpd = (self.motorXResln *1000)/40
-                self.ui.textBrowser.append("*Please change Step/Duration Setting: Min duration for 1 step is : 40 Microseconds")
-        YMtrSpd = (self.motorYResln *1000)/40 
-        if(self.motorXspd ==0 or self.motorXspd > XMtrSpd):
-            self.ui.textBrowser.append("*X Motor speed readjusted to fit Max possible speed: %s" % XMtrSpd)
-        
-        if(self.motorYspd ==0 or self.motorYspd > YMtrSpd):
-            self.ui.textBrowser.append("*Y Motor speed readjusted to fit Max possible speed: %s" % YMtrSpd)
-       
         if(self.ui.slantData.isChecked()):
             self.slantdata = True
             
         else:
             self.slantdata = False
         if(self.ui.Xreversed.isChecked()):
-            self.XPrintDirection = "XHOMEDIR"
-            self.XPrint_return = "XAWAYDIR"
+            self.XPrintDirection = "XHOME"
         else:
-            self.XPrintDirection = "XAWAYDIR"
-            self.XPrint_return = "XHOMEDIR"
+            self.XPrintDirection = "XAWAY"
         if(self.ui.Yreversed.isChecked()):
-            self.YPrintDirection = "YHOMEDIR"
-            self.YPrint_return = "YAWAYDIR"
+            self.YPrintDirection = "YHOME"
         else:
-            self.YPrintDirection = "YAWAYDIR"
-            self.YPrint_return = "YHOMEDIR"
+            self.YPrintDirection = "YAWAY"
             
         if(self.ui.slantData.isChecked()):
             self.slant = True
@@ -271,9 +231,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         
         file.write("#define XPrintDirection %s\r\n" % self.XPrintDirection)
         file.write("#define YPrintDirection %s\r\n" % self.YPrintDirection)
-        
-        file.write("#define XPrint_return %s\r\n" % self.XPrint_return)
-        file.write("#define YPrint_return %s\r\n" % self.YPrint_return)
                    
         file.write("#endif")
         file.close()
@@ -310,25 +267,9 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          return ax
     
     
-    def Export_Model_Printing_data(self):
-        if(self.image_converter.get_model_layers_numb() <1):
-            self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">please upload a Model first</span>')
-        else:
-            loc =r"\Layer_data"
-            if len(os.listdir(os.getcwd()+loc) ) == 0:
-                start = time.time()
-                ia =self.image_converter.poly2imgWrite(self.image_converter.getlayer_data(0),self.image_converter.get_totalLayer_shape(0))
-                np.savetxt(loc+"\Layer"+str(0) +".txt",ia, fmt = '%d',delimiter=',',newline ='\n',header ='[',footer =']')
-                end1 = time.time()
-                self.ui.textBrowser.append("*Generating Model data of %d layers, Estimated Time: %d seconds" % (self.image_converter.get_model_layers_numb(),(end1-start)*self.image_converter.get_model_layers_numb()) ) 
-                for i in range(1,self.image_converter.get_model_layers_numb()):
-                    ia =self.image_converter.poly2imgWrite(self.image_converter.getlayer_data(i),self.image_converter.get_totalLayer_shape(i))
-                    np.savetxt(loc+"\Layer"+str(i) +".txt",ia, fmt = '%d',delimiter=',',newline ='\n',header ='[',footer =']')
-            else:
-                self.ui.textBrowser.append("*please Empty the 'Layer_data' folder in the program directory")
     
-    def layervalue(self,lv):
-        self.ui.layernum.setText("layer " +str(lv) + "/" + str(self.image_converter.get_model_layers_numb()))
+    def layervalue(self):
+        self.ui.layernum.setText("layer " +str(self.ui.layernumb.value()) + "/" + str(self.image_converter.get_model_layers_numb()))
         if self.ui.tab2dview.currentIndex() !=self.ui.tab2dview.indexOf(self.ui.view2d) :
             self.ui.tab2dview.setCurrentIndex(self.ui.tab2dview.indexOf(self.ui.view2d))
             
@@ -387,8 +328,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.ui.process.setText("Manual Motion Control")
         elif msg == "<TEST>":
             self.ui.process.setText("Printhead Test")
-        else:
-            self.ui.textBrowser.append(msg)
             
     def close_connection(self):
         self.serial.disconnect()
@@ -468,9 +407,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.ui.layernumb.setEnabled(False)
             
             self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Uploading data...please wait</span>')
-            #image_to_send = self.image_converter.getlayer(image_numb)
-            image_to_send = self.image_converter.getlayer_data(image_numb)
-            image_to_send = self.image_converter.poly2imgWrite(image_to_send,self.image_converter.get_totalLayer_shape(image_numb))
+            image_to_send = self.image_converter.getlayer(image_numb)
             if(self.slantdata == True):
                 image_to_send = self.slant_image(image_to_send,128)
                 
@@ -540,14 +477,13 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.model_layers =[]
             file_status = self.image_converter.openfile(self.fileName)
             if(file_status):
-                #self.model_layers = self.image_converter.get_model_layers()
+                self.model_layers = self.image_converter.get_model_layers()
                 layer_numbers = self.image_converter.get_model_layers_numb()
               
                 self.ui.layernumb.setEnabled(True)
               
                 self.ui.layernumb.setMaximum(layer_numbers)
                 
-                self.ax1.clear()
                 self.ax2 = self.draw3d(self.ax2,layer_numbers)
                 self.ax1 = self.draw2d(self.ax1,0)
                 
@@ -562,7 +498,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Model Found & processed</span>')
                 self.ui.layernum.setText("layer " +str(self.ui.layernumb.value()) + "/" + str(self.image_converter.get_model_layers_numb()))
                 self.ui.layernumb.valueChanged.connect(self.update_2d)
-                
             else:
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">File is invalid or does not exist</span>')
            
@@ -583,16 +518,10 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def update_2d(self):
         layer_value = self.ui.layernumb.value()
         #print(layer_value)
-        self.layervalue(layer_value)
         
         self.ax1 = self.draw2d(self.ax1,layer_value)
-        self.ax1.plot()
-        #self._canvas1.figure.tight_layout()
-        self._canvas1.draw()
-        self._canvas1.flush_events()
        
-        
-        #self._canvas1.draw()
+        self._canvas1.draw()
         #self.ui.layernumb.setValue(layer_value)
         
         
@@ -668,7 +597,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          
     def draw3d(self,axes,layers):
             axes.clear()
-            
             h,w = self.image_converter.getCadModelDim()
             shiftH = int((self.BedsizeY - h) /2)
             shiftW = int((self.BedsizeX - w) /2)
@@ -684,7 +612,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
                     patch = patches.PathPatch(path)
                     axes.add_patch(patch)
                     art3d.pathpatch_2d_to_3d(patch, z=j, zdir='z')
-                   
+                    
             ylim = int(self.BedsizeY)+20 #*(self.dpiY/25.4))
             xlim = int(self.BedsizeX)+20 #*(self.dpiX/25.4))
             zlim = self.BedsizeZ +20
@@ -718,15 +646,15 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             return axes
         
     def draw2d(self,axes,layer):
-       # axes.clear() #clears data only
-        
+        axes.clear()
         layer_data =  self.image_converter.getlayer_data(layer)
-        layer_shape = self.image_converter.get_totalLayer_shape(layer)
-        temp_img =self.image_converter.poly2imgWrite(layer_data,layer_shape)
-        axes.imshow(self.image_converter.poly2imgWrite(layer_data,layer_shape),cmap = "GnBu")
-         
-        ylim = self.image_converter.img_getheight()
-        xlim = self.image_converter.img_getWidth() 
+        
+        for i in range(0,len(layer_data)):
+            path = Path(layer_data[i])
+            patch = patches.PathPatch(path)
+            axes.add_patch(patch)
+        ylim = self.image_converter.img_getheight() +100
+        xlim = self.image_converter.img_getWidth() + 100
         axes.set_xlim([0, xlim]) #2125
         axes.set_ylim([0, ylim]) #2125
             
@@ -742,15 +670,15 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         axes.set_yticks(minor_ticksy, minor=True)
 
         # And a corresponding grid
-        #axes.grid(which='both')
+        axes.grid(which='both')
 
         # Or if you want different settings for the grids:
-        #axes.grid(which='minor', alpha=0.2)
-       # axes.grid(which='major', alpha=0.5)
-        axes.grid(which='minor', color='b', linestyle='-', linewidth=0.5)
-        axes.grid(which='major', color='b', linestyle='-', linewidth=1)
+        axes.grid(which='minor', alpha=0.2)
+        axes.grid(which='major', alpha=0.5)
+        
         return axes
-   
+        
+    
 #if __name__.endswith('__main__'):
     #m = Main_PROGRAM()
    # m.link_ui()
@@ -765,7 +693,7 @@ if __name__=='__main__':
         
         
         m = Main_PROGRAM()
-       
+
         
         app.aboutToQuit.connect(m.close_connection)
         sys.exit(app.exec_())

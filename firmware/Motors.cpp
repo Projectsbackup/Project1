@@ -11,6 +11,10 @@
 
 Motors::Motors(){}   //CONSTRUCTOR FOR MOTOR CLASS
 
+
+int LowXdelay = 20;
+int LowYdelay = 20;
+
 void Motors::init()
   {
      pinMode(x_min_endstop,INPUT_PULLUP);  // END-STOP SWITCH/SENSOR IS LOW WHEN PRESSED OR MOTOR IS HOMED
@@ -93,7 +97,7 @@ bool Motors::isHomed()
 
  void Motors::StepX(int dirX1)
  {
-      if( isEnabled() )    // && GetStepX() < MAXSTEPX
+      if( isEnabled()  )    // && GetStepX() < MAXSTEPX
       {
         digitalWrite(pin_direction_x,dirX1);
         digitalWrite(pin_motor_step_x,HIGH);
@@ -101,7 +105,7 @@ bool Motors::isHomed()
         delayMicroseconds(20);    //WORKING DELAYS 20 & 20 AFTER LOW
         
         digitalWrite(pin_motor_step_x,LOW);
-        delayMicroseconds(1000);
+        delayMicroseconds(LowXdelay);  // LAST VALUE WAS 1000
         update_StepX(dirX1);
       }
       
@@ -118,34 +122,34 @@ void Motors::StepY(int dirY1)
          delayMicroseconds(20);
          
          digitalWrite(y_motor_step,LOW);
-         delayMicroseconds(1000);   // IT WAS 80 
+         delayMicroseconds(LowYdelay);   // IT WAS 80 , // LAST VALUE WAS 1000
          update_StepY(dirY1);
       }
   
 }
 
 
-bool Motors::Calibrate_ref_bed()
+bool Motors::Calibrate_ref_bed(int Xbed_ref,int Ybed_ref)   //changed was empty and in it was ( BED_XSTEPS_REF,BED_YSTEPS_REF)
 {
-    if( GetStepX() < BED_XSTEPS_REF )
+    if( GetStepX() < Xbed_ref )
     {
       StepX(XAWAYDIR);
     }
-    else if( GetStepX() > BED_XSTEPS_REF )
+    else if( GetStepX() > Xbed_ref )
     {
       StepX(XHOMEDIR);
     }
-    if( GetStepY() < BED_YSTEPS_REF )
+    if( GetStepY() < Ybed_ref )
     {
       StepY(YAWAYDIR);
     }
 
-    else if( GetStepY() > BED_YSTEPS_REF )
+    else if( GetStepY() > Ybed_ref )
     {
       StepY(YHOMEDIR);
     }
     
-    if((GetStepX() == BED_XSTEPS_REF) && (GetStepY() == BED_YSTEPS_REF) )
+    if((GetStepX() == Xbed_ref) && (GetStepY() == Ybed_ref) )
     {
        return true; 
     }
@@ -201,6 +205,43 @@ bool Motors::Calibrate_ref_bed()
       CurrentStepY =0;
     }
     
+ }
+
+void Motors::XSetMotorSpd(int Xdur)
+ {
+  if(Xdur == -1)
+  {
+    LowXdelay = 20;
+  }
+  else
+  {
+    LowXdelay = Xdur - 20;
+    
+    if(LowXdelay < 20)
+    {
+      LowXdelay = 20;  //Single low minimium is 20 microSeconds due to hardware (motor Signals) requirements
+    }
+  }
+  
+ }
+
+
+void Motors::YSetMotorSpd(int Ydur)
+ {
+  if(Ydur == -1)
+  {
+    LowYdelay = 20;
+  }
+  else
+  {
+    LowYdelay = Ydur - 20;
+
+    if(LowYdelay < 20)
+    {
+      LowYdelay = 20;  //Single low minimium is 20 microSeconds due to hardware (motor Signals) requirements
+    }
+  }
+  
  }
 
  
