@@ -30,7 +30,7 @@ class Ui_MainWindow(object):
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, brush)
         MainWindow.setPalette(palette)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("mjp-multijet-printing.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("3dp1.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setWindowOpacity(1.0)
         MainWindow.setAutoFillBackground(False)
@@ -254,6 +254,7 @@ class Ui_MainWindow(object):
         self.layernumb.setProperty("value", 0)
         self.layernumb.setDisplayIntegerBase(10)
         self.layernumb.setObjectName("layernumb")
+        self.layernumb.setEnabled(False)
         self.PrinterSettingstab.addTab(self.control_tab_4, "")
         self.Printer_Settings = QtWidgets.QWidget()
         self.Printer_Settings.setObjectName("Printer_Settings")
@@ -627,7 +628,7 @@ class Ui_MainWindow(object):
         self.Xmicronslabel_6.setWordWrap(False)
         self.Xmicronslabel_6.setObjectName("Xmicronslabel_6")
         self.singlepassDimension = QtWidgets.QDoubleSpinBox(self.Printer_Settings)
-        self.singlepassDimension.setEnabled(False)
+        self.singlepassDimension.setEnabled(True)
         self.singlepassDimension.setGeometry(QtCore.QRect(240, 280, 81, 31))
         self.singlepassDimension.setDecimals(1)
         self.singlepassDimension.setMaximum(500.0)
@@ -741,11 +742,13 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tab2dview.setCurrentIndex(0)
-        self.PrinterSettingstab.setCurrentIndex(1)
+        self.tab2dview.setCurrentIndex(1)
+        self.PrinterSettingstab.setCurrentIndex(0)
         self.Console.setCurrentIndex(0)
         self.checkBoxmotion.clicked['bool'].connect(self.xmotionresln.setEnabled)
         self.checkBoxmotion.clicked['bool'].connect(self.ymotionresln.setEnabled)
+        self.checkBoxmotion.clicked['bool'].connect(self.xmotionspd.setEnabled)
+        self.checkBoxmotion.clicked['bool'].connect(self.ymotionspd.setEnabled)
         self.manualON.clicked['bool'].connect(self.manualON.setEnabled)
         self.manualON.clicked['bool'].connect(self.manualOFF.setDisabled)
         self.manualOFF.clicked['bool'].connect(self.manualOFF.setEnabled)
@@ -783,7 +786,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "3DP"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Binder Jet"))
         self.tab2dview.setTabText(self.tab2dview.indexOf(self.view2d), _translate("MainWindow", "2D View"))
         self.tab2dview.setTabText(self.tab2dview.indexOf(self.viewlayers), _translate("MainWindow", "3D View"))
         self.slicer.setText(_translate("MainWindow", "Slice with Slic3r"))
@@ -852,12 +855,12 @@ class Ui_MainWindow(object):
         self.process.setText(_translate("MainWindow", "N/A"))
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+#if __name__ == "__main__":
+#    import sys
+#    app = QtWidgets.QApplication(sys.argv)
+#    MainWindow = QtWidgets.QMainWindow()
+#    ui = Ui_MainWindow()
+#    ui.setupUi(MainWindow)
+#    MainWindow.show()
+#    sys.exit(app.exec_())
 

@@ -13,7 +13,7 @@ from PyQt5.QtGui import QPixmap, QColor, QImage
 from subfolder.Ui_MainWindow import Ui_MainWindow
 from subfolder.Serial_test import Serial_test as Serial
 from subfolder.Image_Converter import Image_Converter
-from subfolder.Ui_StlSlicer import Ui_StlSlicer
+from subfolder.UiStlSlicer import Ui_StlSlicer
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -491,8 +491,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.YPrintDirection = "YAWAYDIR"
             self.YPrint_return = "YHOMEDIR"
             
-#        if(self.ui.slantData.isChecked()):
-#            self.slant = True
+        if(self.ui.slantData.isChecked()):
+            self.slant = True
         self.writeParameters()
         if(self.fileName):
             self.image_converter.openfile(self.fileName)  #time.ctime() +
@@ -514,10 +514,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     
     
     def writeParameters(self):
-        
-        loc =  os.getcwd() + r'\firmware\printparameters.h'
-       # file = open("firmware\\printparameters.h","w")
-        file = open(loc,"w")
+        file = open("firmware\\printparameters.h","w")
         file.write("#ifndef PRINTPARAMETERS_H_\r\n")
         file.write("#define PRINTPARAMETERS_H_\r\n")
         
@@ -764,28 +761,19 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             image_to_send = self.image_converter.poly2imgWrite(image_to_send,self.image_converter.get_totalLayer_shape(image_numb))
             if(self.slantdata == True):
                 image_to_send = self.slant_image(image_to_send,128)
-#                plt.imshow(image_to_send, cmap='Blues') #interpolation='nearest'
-#                plt.show()
                 
             self.serial.write_layerdata(image_to_send)
-            h= self.image_converter.img_getheight()
-            w =self.image_converter.img_getWidth()
-            s = ( (h * w) /1000)
-            if s > 264:
-                self.ui.textBrowser.append("Data too large to be directly uploaded to Micro-controller Flash memory" )
-            if s<264:
-               # self.serial.write_layerdata(image_to_send)
-                print("done writing")
-                self.timer.stop()
-                self.serial.disconnect()
-                if(self.arduino_upload() == True):
-                     
-                     self.timer.setInterval(30000)
-                     self.timer.timeout.connect(self.done_upload)
-                     self.timer.start()
-    #                self.tt = threading.Timer(30,self.done_upload)
-    #                self.tt.daemon = True
-    #                self.tt.start()
+            print("done writing")
+            self.timer.stop()
+            self.serial.disconnect()
+            if(self.arduino_upload() == True):
+                 
+                 self.timer.setInterval(30000)
+                 self.timer.timeout.connect(self.done_upload)
+                 self.timer.start()
+#                self.tt = threading.Timer(30,self.done_upload)
+#                self.tt.daemon = True
+#                self.tt.start()
             else:
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Upload failed</span>')
         else:
@@ -1026,7 +1014,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         layer_data =  self.image_converter.getlayer_data(layer)
         layer_shape = self.image_converter.get_totalLayer_shape(layer)
         temp_img =self.image_converter.poly2imgWrite(layer_data,layer_shape)
-        axes.imshow(self.image_converter.poly2imgWrite(layer_data,layer_shape),cmap = "GnBu",aspect='auto')
+        axes.imshow(self.image_converter.poly2imgWrite(layer_data,layer_shape),cmap = "GnBu")
          
         ylim = self.image_converter.img_getheight()
         xlim = self.image_converter.img_getWidth() 

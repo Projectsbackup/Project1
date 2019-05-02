@@ -13,11 +13,10 @@ from PyQt5.QtGui import QPixmap, QColor, QImage
 from subfolder.Ui_MainWindow import Ui_MainWindow
 from subfolder.Serial_test import Serial_test as Serial
 from subfolder.Image_Converter import Image_Converter
-from subfolder.Ui_StlSlicer import Ui_StlSlicer
 
 import matplotlib
 from matplotlib import pyplot as plt
-#from PIL import Image
+from PIL import Image
 import numpy as np
 import subprocess
 
@@ -27,19 +26,13 @@ from mpl_toolkits.mplot3d import Axes3D
 import mpl_toolkits.mplot3d as M3
 import mpl_toolkits.mplot3d.art3d as art3d
 
-import math
 
 #from Serial_test import Serial_test as Serial
 import serial.tools.list_ports
-#import threading
+import threading
 from functools import partial
 import time
-import os
 
-from threading import Thread
-
-import stl
-from stl import mesh
 #import OpenGL.GL as gl
 #import OpenGL.GLU as glu
 #import OpenGL.GLUT as glut
@@ -51,7 +44,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.path import Path
 import matplotlib.patches as patches
-from mpl_toolkits import mplot3d
+
 # image_converter = Image_Converter()   
 # image_converter.openfile(r'C:\Users\Jimmy\Desktop\3D Printing research\Silcers\Slic3r\STL SAMPLES\spheresmaller5x.svg') 
 # image_to_send = image_converter.getlayer(10)
@@ -64,15 +57,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.MainWindow = QtWidgets.QMainWindow()
          self.ui.setupUi(self.MainWindow)
         
-        
-         self.uiSTL = Ui_StlSlicer()
-         self.StlWindow = QtWidgets.QDialog()
-        
-#         self.StlWindow.ui = self.uiSTL
-#         self.StlWindow.ui.setupUi(self.StlWindow)
-       #  self.StlWindow.setAttribute(QtCore.Qt.WA_DeleteOnClose)
          
-         self.uiSTL.setupUi(self.StlWindow)
+         
         
          self.image_converter = Image_Converter()
          
@@ -94,11 +80,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.link_ui()
          self.MainWindow.show()
          
-         self.mesh =0
-         self.STLfileName =""
-         self.link_uiStl()
-         
-         
         
          self.slantdata = False
          
@@ -109,284 +90,12 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          self.tt =0
          
          
-    def link_uiStl(self):
-        self.uiSTL.centerIt.clicked.connect(self.stlcenter)
-        self.uiSTL.auto_scale.clicked.connect(partial(self.stlscale,1))
-        self.uiSTL.ScaleSTL.clicked.connect(partial(self.stlscale,0))
-        self.uiSTL.TranslateSTL.clicked.connect(self.stlTranslate)
-        self.uiSTL.RotateSTL.clicked.connect(self.stlRotate)
-        self.uiSTL.SliceSTl.clicked.connect(self.stlSlice)
-        self.uiSTL.OPenSlic3r.clicked.connect(self.openSlic3r)
-        
-        bedsizeX = self.ui.bedXaxis.value()
-        bedsizeY = self.ui.bedYaxis.value()
-        self._canvas3,self.ax3 = self.create_fig("3d",bedsizeX,bedsizeY)
-        self._canvas3.setParent(self.uiSTL.viewstl)
-        self._canvas3.draw()
-        
-    
-    def importStl(self):
-        
-        options = QFileDialog.Options()
-        #options |= QFileDialog.DontUseNativeDialog
-        #was :  r'C:\Users\Jimmy\Desktop\3D Printing research\Silcers\Slic3r\STL SAMPLES'
-        self.STLfileName, _ = QFileDialog.getOpenFileName(self,"Select STL File",os.getcwd(),"STL Files (*.STL)", options=options)
-        if self.STLfileName:
-            
-            try:
-               self.mesh = mesh.Mesh.from_file(self.STLfileName)
-               self.uiSTL.StltextBrowser.append("File Opened sucessfully")
-               
-            except:
-              self.uiSTL.StltextBrowser.append("File is invalid or does not exist")
-              return 0
-            
-            modelname = self.STLfileName.split("/")[-1]
-            modelname = modelname.split(".")[0]
-            print(modelname)
-            self.uiSTL.stlNameLabel.setText(modelname)
-            self.draw_mesh()
-           
-            
-                #self.ax3.clear()
-            self.StlWindow.show()
-          # self.ax2 = self.draw3d(self.ax2,layer_numbers)
-           #self.ax1 = self.draw2d(self.ax1,0)
-                
-   
-       # self._canvas1.draw()
-    def stlTranslate(self):
          
-     moveX = self.uiSTL.tx.value()
-     moveY = self.uiSTL.ty.value()
-     moveZ = self.uiSTL.tz.value()
-     
-     
-     
-     self.mesh.translate([moveX,moveY,moveZ]) 
-   
-     self.draw_mesh()
-    
-    def stlscale(self,check):
-        if check ==1:
-            Xmax = np.ndarray.max(self.mesh.x)
-            Xmin = np.ndarray.min(self.mesh.x)
-     
-     
-            Ymax = np.ndarray.max(self.mesh.y)
-            Ymin = np.ndarray.min(self.mesh.y) 
-            
-            Zmax = np.ndarray.max(self.mesh.z)
-            Zmin = np.ndarray.min(self.mesh.z)
-            
-            BedX = self.ui.bedXaxis.value()
-            BedY = self.ui.bedYaxis.value()
-            BedZ = self.ui.bedZaxis.value()
-            
-            Xdiff = (BedX *0.9) /(Xmax-Xmin)
-            Ydiff = (BedY *0.9) /(Ymax-Ymin)
-            Zdiff = (BedZ *0.9) /(Zmax-Zmin)
-            
-            self.mesh.x = self.mesh.x * (Xdiff )
-            self.mesh.y = self.mesh.y * (Ydiff  )
-            self.mesh.z = self.mesh.z * (Zdiff  )
-            self.stlcenter()
-            self.uiSTL.StltextBrowser.append("*Model rescaled to 90% of total BedSize")
-            
-        if check ==0:
-            Xdiff = self.uiSTL.XScale.value()
-            Ydiff = self.uiSTL.YScale.value()
-            Zdiff = self.uiSTL.ZScale.value()
-            if(Xdiff <=0 or Ydiff <=0 or Zdiff <=0):
-                 self.uiSTL.StltextBrowser.append("*Model cannot be rescaled by a zero or negative factor")
-            else:
-                self.mesh.x = self.mesh.x * (Xdiff )
-                self.mesh.y = self.mesh.y * (Ydiff  )
-                self.mesh.z = self.mesh.z * (Zdiff  )
-                self.draw_mesh()
-                self.uiSTL.StltextBrowser.append("*Model rescaled")
-            
-    def stlcenter(self):
-         
-     BedSizeX = self.ui.bedXaxis.value()
-     BedSizeY = self.ui.bedYaxis.value()
-     
-     
-     Xmax = np.ndarray.max(self.mesh.x)
-     Xmin = np.ndarray.min(self.mesh.x)
-     
-     
-     Ymax = np.ndarray.max(self.mesh.y)
-     Ymin = np.ndarray.min(self.mesh.y)
-     
-     Zmin = np.ndarray.min(self.mesh.z)
-     if Xmin >0:
-         self.mesh.translate([-Xmin,0,0])
-         Xmax = Xmax -Xmin
-         Xmin =0
-     if Ymin >0:
-         self.mesh.translate([0,-Ymin,0])
-         Ymax = Ymax -Ymin
-         Ymin =0
-     if Zmin >0:
-         self.mesh.translate([0,0,-Zmin])
-         
-         Zmin=0
-     #self.mesh.translate([-Xmin,-Ymin,-Zmin]) 
-     self.mesh.translate([BedSizeX/2 - (Xmax-Xmin)/2,BedSizeY/2 - (Ymax-Ymin)/2,-Zmin]) 
-   
-     self.draw_mesh()
-    
-    def stlRotate(self):
-        rx =self.uiSTL.rx.value()
-        ry =self.uiSTL.ry.value()
-        rz =self.uiSTL.rz.value()
-        
-        Xmax = np.ndarray.max(self.mesh.x)
-        Xmin = np.ndarray.min(self.mesh.x)
-     
-     
-        Ymax = np.ndarray.max(self.mesh.y)
-        Ymin = np.ndarray.min(self.mesh.y) 
-            
-        Zmax = np.ndarray.max(self.mesh.z)
-        Zmin = np.ndarray.min(self.mesh.z)
-        
-        midX = (Xmax-Xmin)/2
-        midY = (Ymax -Ymin)/2
-        midZ = (Zmax -Zmin)/2
-        if rx !=0:
-            self.mesh.x = self.mesh.x +(0.5-(midX))
-            self.mesh.y = self.mesh.y +(0.0-(midY))
-            self.mesh.z = self.mesh.z +( 0.0-(midZ))
-            
-            self.mesh.rotate([0.5,0.0,0.0],math.radians(rx))
-            
-            self.mesh.x = self.mesh.x +(0.5+(midX))
-            self.mesh.y = self.mesh.y +(0.0+(midY))
-            self.mesh.z = self.mesh.z +( 0.0+(midZ))
-        
-        if ry !=0:
-            self.mesh.x = self.mesh.x +(0.0-(midX))
-            self.mesh.y = self.mesh.y +(0.5-(midY))
-            self.mesh.z = self.mesh.z +( 0.0-(midZ))
-            
-            
-            self.mesh.rotate([0.0,0.5,0.0],math.radians(ry))
-            
-    
-            self.mesh.x = self.mesh.x +(0.0+(midX))
-            self.mesh.y = self.mesh.y +(0.5+(midY))
-            self.mesh.z = self.mesh.z +( 0.0+(midZ))
-        
-        if rz !=0:
-            self.mesh.x = self.mesh.x +(0.0-(midX))
-            self.mesh.y = self.mesh.y +(0.0-(midY))
-            self.mesh.z = self.mesh.z +( 0.5-(midZ))
-            
-            self.mesh.rotate([0.0,0.0,0.5],math.radians(rz))
-    
-            self.mesh.x = self.mesh.x +(0.0+(midX))
-            self.mesh.y = self.mesh.y +(0.0+(midY))
-            self.mesh.z = self.mesh.z +( 0.5+(midZ))
-        
-        self.draw_mesh()
-    
-    def stlSlice(self):
-        print(os.getcwd())
-        loc = r"\Stl_Models"
-        loc = (os.getcwd()+loc )
-        self.mesh.save(loc +"\model.stl",mode=stl.Mode.ASCII)
-        layer_height = self.uiSTL.desiredlayerheight.value()
-        layer_height = str(layer_height)
-        #process =subprocess.call('"' +os.getcwd()  +'\external_progs\Slic3r\Slic3r-console"' + ' --export-svg ' + '"' + loc +"\model.stl" +'"' +' --layer-height 0.2 -o ' +  '"' +os.getcwd() + '\\external_progs\\test.svg"', shell=True)
-        process =subprocess.call('"' +os.getcwd()  +'\external_progs\Slic3r\Slic3r-console"' + ' --export-svg ' + '"' + loc +"\model.stl" +'"' +' --layer-height ' + layer_height + ' -o ' +  '"' +os.getcwd() + '\\Stl_Models\\test.svg"', shell=False)
-        #print(process)
-       #print('"' +os.getcwd()  +'\external_progs\Slic3r\Slic3r-console "' + '--export-svg ' + '"' +'Stl_Models/xaar mount tilted 31degs.stl' +'"' +' --layer-height 0.2 -o ' +  os.getcwd() + '\\external_progs\\test.svg')
-        if process ==0:
-            self.StlWindow.close()
-            self.done_data = False
-            self.ui.print.setEnabled(False)
-            modelname = self.fileName.split("/")[-1]
-            modelname = modelname.split(".")[0]
-            self.ui.modelname.setText(modelname)
-            #return fileName
-            self.model_layers =[]
-            filename = os.getcwd() + '\\Stl_Models\\test.svg'
-            filename =r"{}".format(filename)
-            
-            print(filename)
-            
-            file_status = self.image_converter.openfile(filename)
-            if(file_status):
-                self.ui.textBrowser.append("Model loaded Sucessfully")
-                #self.model_layers = self.image_converter.get_model_layers()
-                layer_numbers = self.image_converter.get_model_layers_numb()
-              
-                self.ui.layernumb.setEnabled(True)
-              
-                self.ui.layernumb.setMaximum(layer_numbers)
-                
-                self.ax1.clear()
-                self.ax2 = self.draw3d(self.ax2,layer_numbers)
-                self.ax1 = self.draw2d(self.ax1,0)
-                
-    #            imggg = self.image_converter.getlayer(0)
-    #            imggg =self.slant_image(imggg,128)
-    #            
-    #            plt.imshow(imggg, cmap=plt.cm.gray) #interpolation='nearest'
-    #            plt.show()
-                
-                self._canvas1.draw()
-                self._canvas2.draw()
-                self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Model Found & processed</span>')
-                self.ui.layernum.setText("layer " +str(self.ui.layernumb.value()) + "/" + str(self.image_converter.get_model_layers_numb()))
-                self.ui.layernumb.valueChanged.connect(self.update_2d)
-            else:
-                self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">File is invalid or does not exist</span>')
-        else:
-            self.uiSTL.StltextBrowser.append("Process is invalid")
-        
-    def draw_mesh(self):
-        self.ax3.clear()
-        self.ax3.add_collection3d(mplot3d.art3d.Poly3DCollection(self.mesh.vectors))
-        ylim = int(self.BedsizeY)+20 #*(self.dpiY/25.4))
-        xlim = int(self.BedsizeX)+20 #*(self.dpiX/25.4))
-        zlim = self.BedsizeZ +20
-            
-        self.ax3.set_xlim([0, xlim]) #2125
-        self.ax3.set_ylim([0, ylim]) #2125
-        self.ax3.set_zlim([0,zlim])
-        major_ticksx = np.arange(0, xlim, 20)
-        minor_ticksx = np.arange(0, xlim, 5)
-            
-        major_ticksy = np.arange(0, ylim, 20)
-        minor_ticksy = np.arange(0, ylim, 5)
-            
-        major_ticksz = np.arange(0, zlim, 20)
-        minor_ticksz = np.arange(0, zlim, 5)
-
-        self.ax3.set_xticks(major_ticksx)
-        self.ax3.set_xticks(minor_ticksx, minor=True)
-        self.ax3.set_yticks(major_ticksy)
-        self.ax3.set_yticks(minor_ticksy, minor=True)
-            
-        self.ax3.set_zticks(major_ticksz)
-        self.ax3.set_zticks(minor_ticksz, minor=True)
-
-        # And a corresponding grid
-        self.ax3.grid(which='both')
-
-        # Or if you want different settings for the grids:
-        self.ax3.grid(which='minor', alpha=0.2)
-        self.ax3.grid(which='major', alpha=0.5)
-        self._canvas3.draw()       
-    
     def link_ui(self):
        
        
-        #self.ui.slicer.clicked.connect(self.openSlic3r)
-        self.ui.slicer.clicked.connect(self.importStl)
+        self.ui.slicer.clicked.connect(self.openSlic3r)
+        
         self.ui.print.clicked.connect(partial(self.send_commands,"print"))
         
         self.ui.cancelprint.clicked.connect(partial(self.send_commands,"cancel"))
@@ -403,10 +112,10 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         self.ui.moveposy.clicked.connect(partial(self.set_statusY,1))
         
         self.ui.opensvg.clicked.connect(self.openFileNameDialog)
-        #self.ui.layernumb.valueChanged.connect(self.layervalue)
+        self.ui.layernumb.valueChanged.connect(self.layervalue)
         self.ui.uploaddata.clicked.connect(self.upload_data)
         
-        self.ui.convert_Model_Layerdata.clicked.connect(self.Export_Model_Printing_data)
+        
         
         self.ui.manualOFF.clicked.connect(partial(self.send_commands,"OFF"))
         
@@ -432,7 +141,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def update_parameters(self,clicked):   #clicked to update =1 , first time clicked =0
         if clicked == 1:
             self.ui.updateParameters.setEnabled(False)
-            QtWidgets.QApplication.processEvents()
             
         self.dpiX = self.ui.Xdpi.value()
         self.dpiY = self.ui.Ydpi.value()
@@ -458,41 +166,22 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         self.motorXspd = self.ui.xmotionspd.value()
         self.motorYspd = self.ui.ymotionspd.value()
         
-        if(self.stepPerPixel ==1):
-            XMtrSpd = (self.motorXResln *1000)/40   #max speed can be achieved in this setup [stepper motors]
-        else:
-            if((self.StepPixelDuration/2)>= 40):
-                XMtrSpd = (self.motorXResln * 1000) /self.StepPixelDuration
-            if((self.StepPixelDuration/2) <40):
-                XMtrSpd = (self.motorXResln *1000)/40
-                self.ui.textBrowser.append("*Please change Step/Duration Setting: Min duration for 1 step is : 40 Microseconds")
-        YMtrSpd = (self.motorYResln *1000)/40 
-        if(self.motorXspd ==0 or self.motorXspd > XMtrSpd):
-            self.ui.textBrowser.append("*X Motor speed readjusted to fit Max possible speed: %s" % XMtrSpd)
-        
-        if(self.motorYspd ==0 or self.motorYspd > YMtrSpd):
-            self.ui.textBrowser.append("*Y Motor speed readjusted to fit Max possible speed: %s" % YMtrSpd)
-       
         if(self.ui.slantData.isChecked()):
             self.slantdata = True
             
         else:
             self.slantdata = False
         if(self.ui.Xreversed.isChecked()):
-            self.XPrintDirection = "XHOMEDIR"
-            self.XPrint_return = "XAWAYDIR"
+            self.XPrintDirection = "XHOME"
         else:
-            self.XPrintDirection = "XAWAYDIR"
-            self.XPrint_return = "XHOMEDIR"
+            self.XPrintDirection = "XAWAY"
         if(self.ui.Yreversed.isChecked()):
-            self.YPrintDirection = "YHOMEDIR"
-            self.YPrint_return = "YAWAYDIR"
+            self.YPrintDirection = "YHOME"
         else:
-            self.YPrintDirection = "YAWAYDIR"
-            self.YPrint_return = "YHOMEDIR"
+            self.YPrintDirection = "YAWAY"
             
-#        if(self.ui.slantData.isChecked()):
-#            self.slant = True
+        if(self.ui.slantData.isChecked()):
+            self.slant = True
         self.writeParameters()
         if(self.fileName):
             self.image_converter.openfile(self.fileName)  #time.ctime() +
@@ -514,10 +203,7 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     
     
     def writeParameters(self):
-        
-        loc =  os.getcwd() + r'\firmware\printparameters.h'
-       # file = open("firmware\\printparameters.h","w")
-        file = open(loc,"w")
+        file = open("firmware\\printparameters.h","w")
         file.write("#ifndef PRINTPARAMETERS_H_\r\n")
         file.write("#define PRINTPARAMETERS_H_\r\n")
         
@@ -545,9 +231,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         
         file.write("#define XPrintDirection %s\r\n" % self.XPrintDirection)
         file.write("#define YPrintDirection %s\r\n" % self.YPrintDirection)
-        
-        file.write("#define XPrint_return %s\r\n" % self.XPrint_return)
-        file.write("#define YPrint_return %s\r\n" % self.YPrint_return)
                    
         file.write("#endif")
         file.close()
@@ -583,36 +266,10 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          ax.grid(which='major', alpha=0.5)
          return ax
     
-    def process_export(self):
-        loc =r"\Layer_data"
-        loc = (os.getcwd() ) + loc
-        for i in range(1,self.image_converter.get_model_layers_numb()):
-            ia =self.image_converter.poly2imgWrite(self.image_converter.getlayer_data(i),self.image_converter.get_totalLayer_shape(i))
-            np.savetxt(loc+"\Layer"+str(i) +".txt",ia, fmt = '%d',delimiter=',',newline ='\n',header ='[',footer =']')
-        self.ui.textBrowser.append("*Layer Data Generated")
-        
-    def Export_Model_Printing_data(self):
-        if(self.image_converter.get_model_layers_numb() <1):
-            self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">please upload a Model first</span>')
-        else:
-            loc =r"\Layer_data"
-            loc = (os.getcwd() ) + loc
-            #print(loc)
-            if len(os.listdir(loc) ) == 0:
-                start = time.time()
-                ia =self.image_converter.poly2imgWrite(self.image_converter.getlayer_data(0),self.image_converter.get_totalLayer_shape(0))
-                np.savetxt(loc+"\Layer"+str(0) +".txt",ia, fmt = '%d',delimiter=',',newline ='\n',header ='[',footer =']')
-                end1 = time.time()
-                self.ui.textBrowser.append("*Generating Model data of %d layers, Estimated Time: %d seconds" % (self.image_converter.get_model_layers_numb(),(end1-start)*self.image_converter.get_model_layers_numb()) ) 
-                QtWidgets.QApplication.processEvents()
-                new_thread = Thread(target=self.process_export)
-                new_thread.setDaemon(True)
-                new_thread.start()  # Main thr
-            else:
-                self.ui.textBrowser.append("*please Empty the 'Layer_data' folder in the program directory")
     
-    def layervalue(self,lv):
-        self.ui.layernum.setText("layer " +str(lv) + "/" + str(self.image_converter.get_model_layers_numb()))
+    
+    def layervalue(self):
+        self.ui.layernum.setText("layer " +str(self.ui.layernumb.value()) + "/" + str(self.image_converter.get_model_layers_numb()))
         if self.ui.tab2dview.currentIndex() !=self.ui.tab2dview.indexOf(self.ui.view2d) :
             self.ui.tab2dview.setCurrentIndex(self.ui.tab2dview.indexOf(self.ui.view2d))
             
@@ -667,18 +324,14 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.ui.process.setText("Process Cancelled")
             self.ui.print.setText("PRINT")
             self.ui.print.setEnabled(True)
-            self.ui.layernumb.setEnabled(True)
         elif msg == "<MMOV>":
             self.ui.process.setText("Manual Motion Control")
-        
         elif msg == "<TEST>":
             self.ui.process.setText("Printhead Test")
-        else:
-            self.ui.textBrowser.append(msg)
             
     def close_connection(self):
         self.serial.disconnect()
-        self.StlWindow.close()
+        
         
     def check_connection(self):
             #print("check")
@@ -713,18 +366,13 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             for p in serial.tools.list_ports.comports()
             if 'Arduino' in p.description
                 ]
-        
-        #arduinoProg = "\"C:\\Program Files (x86)\\Arduino\\arduino\""
-        
-        arduinoProg = '"' + os.getcwd() + r'\external_progs\Arduino\arduino"'
-        
+        arduinoProg = "\"C:\\Program Files (x86)\\Arduino\\arduino\""
+    
         actionLine = "upload "
     
         boardLine = "arduino:avr:mega"
         portLine = arduino_ports[0]
-       # projectFile2 = "\"\\firmware\\firmware.ino\""
-        
-        projectFile2 = '"' + os.getcwd() + r'\firmware\firmware.ino"'
+        projectFile2 = "\"\\firmware\\firmware.ino\""
         arduinoCommand = arduinoProg  + " --board " + boardLine + " --port " + portLine + " --" + actionLine + projectFile2
         print("\n\n -- Arduino Command --")
         print(arduinoCommand)
@@ -759,33 +407,22 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.ui.layernumb.setEnabled(False)
             
             self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Uploading data...please wait</span>')
-            #image_to_send = self.image_converter.getlayer(image_numb)
-            image_to_send = self.image_converter.getlayer_data(image_numb)
-            image_to_send = self.image_converter.poly2imgWrite(image_to_send,self.image_converter.get_totalLayer_shape(image_numb))
+            image_to_send = self.image_converter.getlayer(image_numb)
             if(self.slantdata == True):
                 image_to_send = self.slant_image(image_to_send,128)
-#                plt.imshow(image_to_send, cmap='Blues') #interpolation='nearest'
-#                plt.show()
                 
             self.serial.write_layerdata(image_to_send)
-            h= self.image_converter.img_getheight()
-            w =self.image_converter.img_getWidth()
-            s = ( (h * w) /1000)
-            if s > 264:
-                self.ui.textBrowser.append("Data too large to be directly uploaded to Micro-controller Flash memory" )
-            if s<264:
-               # self.serial.write_layerdata(image_to_send)
-                print("done writing")
-                self.timer.stop()
-                self.serial.disconnect()
-                if(self.arduino_upload() == True):
-                     
-                     self.timer.setInterval(30000)
-                     self.timer.timeout.connect(self.done_upload)
-                     self.timer.start()
-    #                self.tt = threading.Timer(30,self.done_upload)
-    #                self.tt.daemon = True
-    #                self.tt.start()
+            print("done writing")
+            self.timer.stop()
+            self.serial.disconnect()
+            if(self.arduino_upload() == True):
+                 
+                 self.timer.setInterval(30000)
+                 self.timer.timeout.connect(self.done_upload)
+                 self.timer.start()
+#                self.tt = threading.Timer(30,self.done_upload)
+#                self.tt.daemon = True
+#                self.tt.start()
             else:
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Upload failed</span>')
         else:
@@ -826,8 +463,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         #options |= QFileDialog.DontUseNativeDialog
-        # was : r'C:\Users\Jimmy\Desktop\3D Printing research\Silcers\Slic3r\STL SAMPLES'
-        self.fileName, _ = QFileDialog.getOpenFileName(self,"Select Silc3r SVG File",os.getcwd() ,"SVG Files (*.svg);;All Files (*)", options=options)
+        
+        self.fileName, _ = QFileDialog.getOpenFileName(self,"Select Silc3r SVG File", r'C:\Users\Jimmy\Desktop\3D Printing research\Silcers\Slic3r\STL SAMPLES',"SVG Files (*.svg);;All Files (*)", options=options)
         if self.fileName:
            # self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">File being processed</span>')
             #print(fileName)
@@ -840,14 +477,13 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             self.model_layers =[]
             file_status = self.image_converter.openfile(self.fileName)
             if(file_status):
-                #self.model_layers = self.image_converter.get_model_layers()
+                self.model_layers = self.image_converter.get_model_layers()
                 layer_numbers = self.image_converter.get_model_layers_numb()
               
                 self.ui.layernumb.setEnabled(True)
               
                 self.ui.layernumb.setMaximum(layer_numbers)
                 
-                self.ax1.clear()
                 self.ax2 = self.draw3d(self.ax2,layer_numbers)
                 self.ax1 = self.draw2d(self.ax1,0)
                 
@@ -862,7 +498,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">Model Found & processed</span>')
                 self.ui.layernum.setText("layer " +str(self.ui.layernumb.value()) + "/" + str(self.image_converter.get_model_layers_numb()))
                 self.ui.layernumb.valueChanged.connect(self.update_2d)
-                
             else:
                 self.ui.textBrowser.append('<span style="color:darkolivegreen;font-weight:bold">File is invalid or does not exist</span>')
            
@@ -871,9 +506,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def openSlic3r(self):
         #self.MainWindow.setEnabled(False)
         #subprocess.call(['C:\Program Files\Repetier-Host\Slic3r\Slic3r.exe'])
-        print('"' +os.getcwd()  +'\external_progs\Slic3r\slic3r.exe ')
-        process =subprocess.Popen('"' +os.getcwd()  +'\external_progs\Slic3r\Slic3r.exe"'  + ' "'+ (self.STLfileName) + '"', shell=False)
-        self.StlWindow.close()
+        process =subprocess.Popen('C:\Program Files\Repetier-Host\Slic3r\Slic3r.exe', shell=False)
+        
         #self.MainWindow.setEnabled(True)
 #    def tabSelected(self, arg=0):
 #        print(arg)
@@ -884,16 +518,10 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
     def update_2d(self):
         layer_value = self.ui.layernumb.value()
         #print(layer_value)
-        self.layervalue(layer_value)
         
         self.ax1 = self.draw2d(self.ax1,layer_value)
-        self.ax1.plot()
-        #self._canvas1.figure.tight_layout()
-        self._canvas1.draw()
-        self._canvas1.flush_events()
        
-        
-        #self._canvas1.draw()
+        self._canvas1.draw()
         #self.ui.layernumb.setValue(layer_value)
         
         
@@ -969,7 +597,6 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
          
     def draw3d(self,axes,layers):
             axes.clear()
-            
             h,w = self.image_converter.getCadModelDim()
             shiftH = int((self.BedsizeY - h) /2)
             shiftW = int((self.BedsizeX - w) /2)
@@ -984,10 +611,8 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
                     path = Path(temp_layer)
                     patch = patches.PathPatch(path)
                     axes.add_patch(patch)
-                    zr = self.image_converter.getZdiff() *j
-                    #print(zr)
-                    art3d.pathpatch_2d_to_3d(patch, z=zr, zdir='z')
-                   
+                    art3d.pathpatch_2d_to_3d(patch, z=j, zdir='z')
+                    
             ylim = int(self.BedsizeY)+20 #*(self.dpiY/25.4))
             xlim = int(self.BedsizeX)+20 #*(self.dpiX/25.4))
             zlim = self.BedsizeZ +20
@@ -1021,15 +646,15 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
             return axes
         
     def draw2d(self,axes,layer):
-       # axes.clear() #clears data only
-        
+        axes.clear()
         layer_data =  self.image_converter.getlayer_data(layer)
-        layer_shape = self.image_converter.get_totalLayer_shape(layer)
-        temp_img =self.image_converter.poly2imgWrite(layer_data,layer_shape)
-        axes.imshow(self.image_converter.poly2imgWrite(layer_data,layer_shape),cmap = "GnBu",aspect='auto')
-         
-        ylim = self.image_converter.img_getheight()
-        xlim = self.image_converter.img_getWidth() 
+        
+        for i in range(0,len(layer_data)):
+            path = Path(layer_data[i])
+            patch = patches.PathPatch(path)
+            axes.add_patch(patch)
+        ylim = self.image_converter.img_getheight() +100
+        xlim = self.image_converter.img_getWidth() + 100
         axes.set_xlim([0, xlim]) #2125
         axes.set_ylim([0, ylim]) #2125
             
@@ -1045,15 +670,15 @@ class Main_PROGRAM(QtWidgets.QMainWindow):
         axes.set_yticks(minor_ticksy, minor=True)
 
         # And a corresponding grid
-        #axes.grid(which='both')
+        axes.grid(which='both')
 
         # Or if you want different settings for the grids:
-        #axes.grid(which='minor', alpha=0.2)
-       # axes.grid(which='major', alpha=0.5)
-        axes.grid(which='minor', color='b', linestyle='-', linewidth=0.5)
-        axes.grid(which='major', color='b', linestyle='-', linewidth=1)
+        axes.grid(which='minor', alpha=0.2)
+        axes.grid(which='major', alpha=0.5)
+        
         return axes
-   
+        
+    
 #if __name__.endswith('__main__'):
     #m = Main_PROGRAM()
    # m.link_ui()
@@ -1068,7 +693,7 @@ if __name__=='__main__':
         
         
         m = Main_PROGRAM()
-       
+
         
         app.aboutToQuit.connect(m.close_connection)
         sys.exit(app.exec_())

@@ -55,6 +55,11 @@ void echoCommand(int cmd)
      
       nameCommand = "MMOV";
     }
+
+    if(cmd == 7 ){
+     
+      nameCommand = "TEST";
+    }
     
   Serial.println("<" + nameCommand + ">");
   
@@ -212,7 +217,9 @@ int checkCommand(char* COMMND){
      if(strcmp(COMMND,"MMOV")==0){
       return 5;
     }
-    
+     if(strcmp(COMMND,"TEST")==0){
+      return 7;
+    }
     return -1;
 }
 

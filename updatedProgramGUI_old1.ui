@@ -152,7 +152,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="control_tab_4">
      <attribute name="title">
@@ -162,9 +162,9 @@
       <property name="geometry">
        <rect>
         <x>250</x>
-        <y>20</y>
+        <y>10</y>
         <width>211</width>
-        <height>51</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="font">
@@ -175,14 +175,14 @@
        </font>
       </property>
       <property name="text">
-       <string>Slice with Slic3r</string>
+       <string>Import Stl Model</string>
       </property>
      </widget>
      <widget class="QLabel" name="Printsettings">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>90</y>
+        <y>100</y>
         <width>171</width>
         <height>31</height>
        </rect>
@@ -242,7 +242,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>130</y>
         <width>441</width>
         <height>20</height>
        </rect>
@@ -254,10 +254,10 @@
      <widget class="QPushButton" name="opensvg">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>20</y>
+        <x>20</x>
+        <y>10</y>
         <width>221</width>
-        <height>51</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="font">
@@ -268,7 +268,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Open SVG Format</string>
+       <string>Import SVG Format</string>
       </property>
      </widget>
      <widget class="QPushButton" name="uploaddata">
@@ -279,7 +279,7 @@
        <rect>
         <x>290</x>
         <y>150</y>
-        <width>151</width>
+        <width>161</width>
         <height>31</height>
        </rect>
       </property>
@@ -675,6 +675,9 @@
       </property>
      </widget>
      <widget class="QSpinBox" name="layernumb">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>180</x>
@@ -700,6 +703,26 @@
       </property>
       <property name="displayIntegerBase">
        <number>10</number>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="convert_Model_Layerdata">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>441</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Export Model Layers data</string>
       </property>
      </widget>
     </widget>
@@ -1111,7 +1134,7 @@
        <double>1000.000000000000000</double>
       </property>
       <property name="singleStep">
-       <double>0.500000000000000</double>
+       <double>0.100000000000000</double>
       </property>
       <property name="value">
        <double>11.000000000000000</double>
@@ -1136,7 +1159,7 @@
        <double>1000.000000000000000</double>
       </property>
       <property name="singleStep">
-       <double>0.500000000000000</double>
+       <double>0.100000000000000</double>
       </property>
       <property name="value">
        <double>11.000000000000000</double>
@@ -1201,34 +1224,6 @@
        <bool>false</bool>
       </property>
      </widget>
-     <widget class="QSpinBox" name="bedXorigin">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>100</y>
-        <width>71</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="wrapping">
-       <bool>false</bool>
-      </property>
-      <property name="buttonSymbols">
-       <enum>QAbstractSpinBox::UpDownArrows</enum>
-      </property>
-      <property name="maximum">
-       <number>10000</number>
-      </property>
-      <property name="value">
-       <number>0</number>
-      </property>
-      <property name="displayIntegerBase">
-       <number>10</number>
-      </property>
-     </widget>
      <widget class="QLabel" name="xlabel_2">
       <property name="geometry">
        <rect>
@@ -1254,25 +1249,6 @@
       </property>
       <property name="wordWrap">
        <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="bedYorigin">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>100</y>
-        <width>71</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="maximum">
-       <number>10000</number>
-      </property>
-      <property name="value">
-       <number>0</number>
-      </property>
-      <property name="displayIntegerBase">
-       <number>10</number>
       </property>
      </widget>
      <widget class="QLabel" name="mmLabel_2">
@@ -1510,6 +1486,9 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
       <property name="maximum">
        <number>2000</number>
       </property>
@@ -1542,25 +1521,6 @@
       </property>
       <property name="wordWrap">
        <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="singlepassDimension">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>280</y>
-        <width>81</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>2000</number>
-      </property>
-      <property name="value">
-       <number>1</number>
       </property>
      </widget>
      <widget class="QLabel" name="microSecLabel_2">
@@ -1766,7 +1726,7 @@
        <double>0.500000000000000</double>
       </property>
       <property name="value">
-       <double>11.000000000000000</double>
+       <double>0.000000000000000</double>
       </property>
      </widget>
      <widget class="QDoubleSpinBox" name="ymotionspd">
@@ -1791,7 +1751,7 @@
        <double>0.500000000000000</double>
       </property>
       <property name="value">
-       <double>11.000000000000000</double>
+       <double>0.000000000000000</double>
       </property>
      </widget>
      <widget class="QLabel" name="Xmicronslabel_5">
@@ -1846,6 +1806,123 @@
       </property>
       <property name="wordWrap">
        <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="singlepassDimension">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>280</y>
+        <width>81</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <double>500.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>17.199999999999999</double>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="slantData">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>180</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Slant Data</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="Xreversed">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>210</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>X dir reversed</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="Yreversed">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>230</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Y dir reversed</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="bedXorigin">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>100</y>
+        <width>71</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <double>1000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="bedYorigin">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>100</y>
+        <width>71</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <double>1000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
       </property>
      </widget>
     </widget>
@@ -2677,6 +2754,38 @@
     <hint type="destinationlabel">
      <x>1222</x>
      <y>491</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxmotion</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>ymotionspd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1122</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1167</x>
+     <y>501</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxmotion</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>xmotionspd</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1122</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1167</x>
+     <y>471</y>
     </hint>
    </hints>
   </connection>

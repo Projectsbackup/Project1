@@ -15,6 +15,8 @@ import serial
 import serial.tools.list_ports
 from serial import SerialException
 
+import os
+
 import time
 import numpy as np
 from matplotlib import pyplot as plt
@@ -53,9 +55,10 @@ class Serial_test():
         else:
             if self.connected == False :
                 try:
+                    
                     self.ser = serial.Serial(arduino_ports[0], 115200,timeout=1)
                     self.connected = True
-                    time.sleep(1.25)
+                    #time.sleep(1.25)
                     return self.connected
                 except serial.SerialException:
                     
@@ -81,7 +84,15 @@ class Serial_test():
     
     '''
     def write_layerdata(self,image_to_send):
-        file = open("firmware\\imagetest.h","w")
+        
+        
+        #loc = "\\firmware\\imagetest.h"
+        
+        loc = r"\firmware\image.h"
+        loc = (os.getcwd()+loc )
+       # file = open("firmware\\imagetest.h","w")
+        file = open(loc,"w")
+       # file = open("firmware\\image.h","w")
         file.write("#ifndef IMAGE_H_\r\n")
         file.write("#define IMAGE_H_\r\n")
         
